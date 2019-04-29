@@ -86,7 +86,7 @@ def LRU(arr,ref,x,ways):
 #def WRITE(mem):
     #print("WRITE")
 
-
+#checks to see if corrent arguments were entered
 if(len(sys.argv) !=7):
     print("Error incorrect number of arguments\n");
     sys.exit(1)
@@ -107,10 +107,12 @@ if not os.path.exists(sys.argv[6]):
     print("Error, file not found")
     sys.exit(1)
 
+#get important args from command line
 cacheSize = sys.argv[2]
 ways = sys.argv[4]
 file = sys.argv[6]
 
+#calculate cache size
 if (cacheSize[-2:]=='MB'):
     c = int(cacheSize[:-2])*1024*1024
 elif (cacheSize[-2:]=='KB'):
@@ -120,6 +122,7 @@ elif (cacheSize[-1:]=='B'):
 else:
     c = int(cacheSize)
 
+#calculate sets
 sets = c/(int(ways)*64)
     
 print("Simulating cache with size",cacheSize,"(",c,"bytes)",",associativity",ways,",sets",int(sets))
@@ -127,6 +130,8 @@ print("Simulating cache with size",cacheSize,"(",c,"bytes)",",associativity",way
 
 xFlag=0
 
+#determine number of bits per entry
+#if entry starts with '0x' readjust bit numv=ber 
 fp = open(file,'r')
 for line in fp:
     f = line.strip()
@@ -140,6 +145,8 @@ for line in fp:
     break
 fp.close()
 
+#compute offset/index/tag
+#print to test if offset/index/tag are correct
 blockSize = 64
 print("Block Size",blockSize)
 offset = math.floor(math.log(blockSize,2))
@@ -152,10 +159,11 @@ print("Index",index)
 tag = bits-offset-index
 print("Tag",tag)
 
+#create empty list of size 'ways'
 arr = [None]*int(ways)
 ref = [None]*int(ways)
 
-
+#get updated values of offset and tag
 offset = int(offset)
 l=[]
 if(xFlag==1):
@@ -167,29 +175,45 @@ fp = open(file,'r')
 
 total=0
 x=1
+
+#read in each line and determine what operation to conduct
 for line in fp:
+
+    #some files end in #eof
     if(line.find('#eof')!=-1):
         break
+        
+    #strip and split lines
     f = line.strip()
     l = f.split(" ")
-    mem = l[2][i:j]
+    
+    #grab operation
     operation = l[1]
-    #if(operation=='W'):
-        #WRITE(mem)
+    
+    #if read, start LRU
     if(operation=='R'):
+    
+        #place value in LRU
+        mem = l[2][i:j]
         arr,ref = LRU(arr,ref,mem,int(ways))
+        
+    #line number
     total+=1
+    
     #if (x==147):
     #    break
     #x+=1
-    
-    #break
+
+#print to test
 print(arr)
 print(ref)
 
+#update hit/miss percentages
 hitPer = round((hit/total*100),2)
 missPer = round(miss/total,13)
 
+#print results
 print("Results: total",total,", hits",hit,"(",hitPer,"%), misses",miss,"(",missPer,")")
 
+#close file
 fp.close()
