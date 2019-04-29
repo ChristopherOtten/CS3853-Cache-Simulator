@@ -7,6 +7,8 @@ import math
 hit=0
 miss=0
 
+
+
 def LRU(arr,ref,x,ways):
     #Size of LRU is ways?
     #print("LRU")
@@ -20,7 +22,7 @@ def LRU(arr,ref,x,ways):
         
         #if x is in arr
         if(arr[i] == x):
-            
+            #print(arr[i],x)
             #set ref count to 0
             ref[i]=0
                         
@@ -46,7 +48,7 @@ def LRU(arr,ref,x,ways):
                         
             #set Flag
             flag=1
-			
+            
             miss+=1
             
             #break out of loop
@@ -66,7 +68,7 @@ def LRU(arr,ref,x,ways):
     #flag wasnt set, so LRU must replace numbers
     
     #replace highest ref count number with x
-    ma = arr.index(max(arr))
+    ma = ref.index(max(ref))
     arr[ma] = x
     
     #set ref count to 0
@@ -81,8 +83,8 @@ def LRU(arr,ref,x,ways):
 
 
     
-def WRITE(mem):
-    print("WRITE")
+#def WRITE(mem):
+    #print("WRITE")
 
 
 if(len(sys.argv) !=7):
@@ -113,25 +115,39 @@ if (cacheSize[-2:]=='MB'):
     c = int(cacheSize[:-2])*1024*1024
 elif (cacheSize[-2:]=='KB'):
     c = int(cacheSize[:-2])*1024
+elif (cacheSize[-1:]=='B'):
+    c = int(cacheSize[:-1])
+else:
+    c = int(cacheSize)
 
 sets = c/(int(ways)*64)
     
 print("Simulating cache with size",cacheSize,"(",c,"bytes)",",associativity",ways,",sets",int(sets))
 
+
+xFlag=0
+
 fp = open(file,'r')
 for line in fp:
     f = line.strip()
     l = f.split(" ")
-    bits = len(l[2])
+    if(l[2][0:2] == '0x'):
+        bits = len(l[2][2:])
+        xFlag=1
+    else:
+        bits = len(l[2])
     print(l[2],bits)
     break
 fp.close()
 
-blockSize = math.floor(math.log(int(ways),2))
+blockSize = 64
 print("Block Size",blockSize)
 offset = math.floor(math.log(blockSize,2))
 print("Offset",offset)
-index = math.floor(math.log(sets/1024,2))
+if(sets/1024 > 1):
+    index = math.floor(math.log(sets/1024,2))
+else:
+    index = math.floor(math.log(sets,2))
 print("Index",index)
 tag = bits-offset-index
 print("Tag",tag)
@@ -142,23 +158,30 @@ ref = [None]*int(ways)
 
 offset = int(offset)
 l=[]
-i = int(tag)
+if(xFlag==1):
+    i = int(tag)+2
+else:
+    i = int(tag)
 j = -int(offset)
 fp = open(file,'r')
 
 total=0
-
+x=1
 for line in fp:
+    if(line.find('#eof')!=-1):
+        break
     f = line.strip()
     l = f.split(" ")
     mem = l[2][i:j]
-    #print(mem)
     operation = l[1]
-    if(operation=='W'):
-        WRITE(mem)
-    elif(operation=='R'):
+    #if(operation=='W'):
+        #WRITE(mem)
+    if(operation=='R'):
         arr,ref = LRU(arr,ref,mem,int(ways))
     total+=1
+    #if (x==147):
+    #    break
+    #x+=1
     
     #break
 print(arr)
