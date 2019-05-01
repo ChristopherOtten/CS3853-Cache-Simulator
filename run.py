@@ -157,6 +157,12 @@ else:
     index = math.floor(math.log(sets,2))
 print("Index",index)
 tag = bits-offset-index
+
+#reconfigure offset and tags, bc they are incorrect
+if(tag<0):
+    offset = 2
+    tag = bits-offset-index
+    print("new offset",offset)
 print("Tag",tag)
 
 #create empty list of size 'ways'
