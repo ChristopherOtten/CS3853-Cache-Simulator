@@ -151,14 +151,14 @@ blockSize = 64
 print("Block Size",blockSize)
 offset = math.floor(math.log(blockSize,2))
 print("Offset",offset)
-if(sets/1024 > 1):
-    index = math.floor(math.log(sets/1024,2))
-else:
-    index = math.floor(math.log(sets,2))
+index = math.floor(math.log(sets,2))
 print("Index",index)
 tag = bits-offset-index
 
-#reconfigure offset and tags, bc they are incorrect
+#reconfigure offset/index/tags, bc they could be incorrect
+if(index>=bits-2):
+    index=2
+    print("new index",index)
 if(tag<0):
     offset = 2
     tag = bits-offset-index
@@ -202,6 +202,9 @@ for line in fp:
         #place value in LRU
         mem = l[2][i:j]
         arr,ref = LRU(arr,ref,mem,int(ways))
+    
+    #if(operation=='W'):
+        #do something
         
     #line number
     total+=1
