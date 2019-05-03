@@ -11,7 +11,7 @@ test=0
 
 
 
-def LRU(arr,ref,val,t,dirty,x,mem,tagL):
+def LRU(arr,ref,val,t,dirty,x,tagL):
     #Size of LRU is ways?
     #print("LRU")
     flag=0
