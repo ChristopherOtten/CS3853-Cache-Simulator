@@ -7,9 +7,11 @@ import math
 hit=0
 miss=0
 
+test=0
 
 
-def LRU(arr,ref,x,ways):
+
+def LRU(arr,ref,val,t,dirty,x,mem,tagL):
     #Size of LRU is ways?
     #print("LRU")
     flag=0
@@ -43,6 +45,10 @@ def LRU(arr,ref,x,ways):
             #ref count to 0
             ref[i]=0
             
+            
+            val[i] = 1
+            t[i] = tagL
+            dirty[i] = 0
             #Increment Page Faults
             #pageFault++;
                         
@@ -63,7 +69,7 @@ def LRU(arr,ref,x,ways):
     #IF flag is set, then correct operation
     #in LRU was done, quit function
     if(flag==1):
-        return arr,ref
+        return(arr,ref,val,t,dirty)
     
     #flag wasnt set, so LRU must replace numbers
     
@@ -73,18 +79,63 @@ def LRU(arr,ref,x,ways):
     
     #set ref count to 0
     ref[ma] = 0
-    
+    val[i] = 1
+    t[i] = tagL
+    dirty[i] = 0
     #increment pageFault
     #pageFault++;
-    
     #leave function
     miss+=1
-    return arr,ref
+    return(arr,ref,val,t,dirty)
 
 
     
-#def WRITE(mem):
+def WRITE(arr,ref,val,t,dirty,ways,mem,tagL):
     #print("WRITE")
+    global hit
+    global miss
+    global test
+    flag=0
+    for i in range(0,len(arr)):
+        if(arr[i] == None):
+            arr[i] = mem
+            ref[i] = 0
+            
+            val[i] = 1
+            t[i] = tagL
+            dirty[i] = 1
+            
+            miss+=1
+            flag=1
+            break
+        
+        elif(arr[i] == mem and val[i] == 1):
+            dirty[i] = 1
+            hit+=1
+            flag=1
+            break
+        
+            '''ma = ref.index(max(ref))
+            arr[ma] = x
+    
+            #set ref count to 0
+            ref[ma] = 0
+            val[i] = 1
+            t[i] = tagL
+            dirty[i] = 1'''
+    if (flag==1):
+        return(arr,ref,val,t,dirty) 
+    print("HELLO WORLD")	
+    ma = ref.index(max(ref))
+    arr[ma] = x
+    
+    #set ref count to 0
+    ref[ma] = 0
+    val[i] = 1
+    t[i] = tagL
+    dirty[i] = 1
+    miss+=1
+    return(arr,ref,val,t,dirty) 
 
 #checks to see if corrent arguments were entered
 if(len(sys.argv) !=7):
@@ -168,6 +219,9 @@ print("Tag",tag)
 #create empty list of size 'ways'
 arr = [None]*int(ways)
 ref = [None]*int(ways)
+val = [0]*int(ways)
+t = [None]*int(ways)
+dirty = [0]*int(ways)
 
 #get updated values of offset and tag
 offset = int(offset)
@@ -201,11 +255,14 @@ for line in fp:
     
         #place value in LRU
         mem = l[2][i:j]
-        arr,ref = LRU(arr,ref,mem,int(ways))
+        tagL = l[2][2:tag+2]
+        arr,ref,val,t,dirty = LRU(arr,ref,val,t,dirty,int(ways),mem,tagL)
     
-    #if(operation=='W'):
-        #do something
-        
+    if(operation=='W'):
+        mem = l[2][i:j]
+        tagL = l[2][2:tag+2]
+        #print(tagL)
+        arr,ref,val,t,dirty = WRITE(arr,ref,val,t,dirty,ways,mem,tagL)
     #line number
     total+=1
     
@@ -214,9 +271,12 @@ for line in fp:
     #x+=1
 
 #print to test
-print(arr)
-print(ref)
-
+print("ARR",arr)
+print("REF",ref)
+print("VALID",val)
+print("TAG",t)
+print("DIRTY",dirty)
+print(test)
 #update hit/miss percentages
 hitPer = round((hit/total*100),2)
 missPer = round(miss/total,13)
