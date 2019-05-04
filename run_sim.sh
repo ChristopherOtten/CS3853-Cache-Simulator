@@ -14,6 +14,8 @@ run.py -s 32KB -a 16 -f $1
 
 run.py -s 32KB -a 8 -f $1
 
+run.py -s 256KB -a 16 -f $1
+
 run.py -s 4MB -a 16 -f $1
 
 run.py -s 4MB -a 8 -f $1
