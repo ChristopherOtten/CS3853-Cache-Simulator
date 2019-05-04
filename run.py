@@ -7,13 +7,7 @@ import math
 hit=0
 miss=0
 
-test=0
-
-
-
 def LRU(arr,ref,val,t,dirty,ways,x,tagL):
-    #Size of LRU is ways?
-    #print("LRU")
     flag=0
     global hit
     global miss
@@ -24,10 +18,12 @@ def LRU(arr,ref,val,t,dirty,ways,x,tagL):
         
         #if x is in arr
         if(arr[i] == x):
-            #print(arr[i],x)
+            
             #set ref count to 0
             ref[i]=0
-                        
+            val[i]=1
+            t[i]=tagL
+            dirty[i]=1
             #set flag
             flag=1
             
@@ -49,8 +45,6 @@ def LRU(arr,ref,val,t,dirty,ways,x,tagL):
             val[i] = 1
             t[i] = tagL
             dirty[i] = 0
-            #Increment Page Faults
-            #pageFault++;
                         
             #set Flag
             flag=1
@@ -82,8 +76,7 @@ def LRU(arr,ref,val,t,dirty,ways,x,tagL):
     val[i] = 1
     t[i] = tagL
     dirty[i] = 0
-    #increment pageFault
-    #pageFault++;
+	
     #leave function
     miss+=1
     return(arr,ref,val,t,dirty)
@@ -91,13 +84,20 @@ def LRU(arr,ref,val,t,dirty,ways,x,tagL):
 
     
 def WRITE(arr,ref,val,t,dirty,ways,mem,tagL):
-    #print("WRITE")
     global hit
     global miss
-    global test
     flag=0
     for i in range(0,len(arr)):
-        if(arr[i] == None):
+
+        if(arr[i] == mem and dirty[i] == 1):
+            dirty[i] = 1
+            hit+=1
+            flag=1
+            ref[i]=0
+            break
+
+
+        elif(arr[i] == None):
             arr[i] = mem
             ref[i] = 0
             
@@ -109,23 +109,8 @@ def WRITE(arr,ref,val,t,dirty,ways,mem,tagL):
             flag=1
             break
         
-        elif(arr[i] == mem and val[i] == 1):
-            dirty[i] = 1
-            hit+=1
-            flag=1
-            break
-        
-            '''ma = ref.index(max(ref))
-            arr[ma] = x
-    
-            #set ref count to 0
-            ref[ma] = 0
-            val[i] = 1
-            t[i] = tagL
-            dirty[i] = 1'''
     if (flag==1):
-        return(arr,ref,val,t,dirty) 
-    print("HELLO WORLD")	
+        return(arr,ref,val,t,dirty)     
     ma = ref.index(max(ref))
     arr[ma] = x
     
@@ -175,12 +160,9 @@ else:
 
 #calculate sets
 sets = c/(int(ways)*64)
-    
-print("Simulating cache with size",cacheSize,"(",c,"bytes)",",associativity",ways,",sets",int(sets))
-
 
 xFlag=0
-
+wFlag=0
 #determine number of bits per entry
 #if entry starts with '0x' readjust bit numv=ber 
 fp = open(file,'r')
@@ -192,29 +174,23 @@ for line in fp:
         xFlag=1
     else:
         bits = len(l[2])
-    print(l[2],bits)
+    if(l[1]=='W'):
+        wFlag=1
     break
 fp.close()
 
 #compute offset/index/tag
-#print to test if offset/index/tag are correct
 blockSize = 64
-print("Block Size",blockSize)
 offset = math.floor(math.log(blockSize,2))
-print("Offset",offset)
 index = math.floor(math.log(sets,2))
-print("Index",index)
 tag = bits-offset-index
 
 #reconfigure offset/index/tags, bc they could be incorrect
 if(index>=bits-2):
     index=2
-    print("new index",index)
 if(tag<0):
     offset = 2
     tag = bits-offset-index
-    print("new offset",offset)
-print("Tag",tag)
 
 #create empty list of size 'ways'
 arr = [None]*int(ways)
@@ -252,37 +228,25 @@ for line in fp:
     
     #if read, start LRU
     if(operation=='R'):
-    
         #place value in LRU
         mem = l[2][i:j]
         tagL = l[2][2:tag+2]
         arr,ref,val,t,dirty = LRU(arr,ref,val,t,dirty,int(ways),mem,tagL)
     
     if(operation=='W'):
+        if(wFlag==1):
+            i=bits-index-2+2
+            j=-3
         mem = l[2][i:j]
         tagL = l[2][2:tag+2]
-        #print(tagL)
         arr,ref,val,t,dirty = WRITE(arr,ref,val,t,dirty,ways,mem,tagL)
     #line number
     total+=1
-    
-    #if (x==147):
-    #    break
-    #x+=1
 
-#print to test
-print("ARR",arr)
-print("REF",ref)
-print("VALID",val)
-print("TAG",t)
-print("DIRTY",dirty)
-print(test)
-#update hit/miss percentages
 hitPer = round((hit/total*100),2)
 missPer = round(miss/total,13)
 
 #print results
-print("Results: total",total,", hits",hit,"(",hitPer,"%), misses",miss,"(",missPer,")")
-
+print("Cache miss rate:",round(missPer*100,2),"%")
 #close file
 fp.close()
